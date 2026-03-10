@@ -1,0 +1,35 @@
+import PyPDF2
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+skills_list = [
+    "python","java","c++","machine learning","deep learning",
+    "data analysis","sql","flask","django","tensorflow",
+    "pandas","numpy","html","css","javascript","react"
+]
+
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with open(pdf_path, "rb") as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            text += page.extract_text()
+    return text.lower()
+
+def analyze_resume(resume_path, job_desc):
+
+    resume_text = extract_text_from_pdf(resume_path)
+
+    documents = [resume_text, job_desc]
+
+    cv = CountVectorizer().fit_transform(documents)
+    similarity = cosine_similarity(cv)[0][1]
+
+    score = round(similarity * 100, 2)
+
+    missing = []
+    for skill in skills_list:
+        if skill in job_desc.lower() and skill not in resume_text:
+            missing.append(skill)
+
+    return score, missing
